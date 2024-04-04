@@ -9,14 +9,17 @@ from azure.identity import DefaultAzureCredential
 
 app = func.FunctionApp()
 
-@app.schedule(schedule="0 0 */6 * * *", arg_name="myTimer", run_on_startup=True,
-              use_monitor=False) 
-def TimeTrgRsGrpEvntHub(myTimer: func.TimerRequest) -> None:
-    if myTimer.past_due:
+@app.function_name(name="mytimer")
+@app.timer_trigger(schedule="0 0 */6 * * *", 
+              arg_name="mytimer",
+              run_on_startup=True) 
+def test_function(mytimer: func.TimerRequest) -> None:
+    utc_timestamp = datetime.datetime.utcnow().replace(
+        tzinfo=datetime.timezone.utc).isoformat()
+    if mytimer.past_due:
         logging.info('The timer is past due!')
-
-    logging.info('Python timer trigger function executed.')
-
+    logging.info('Python timer trigger function ran at %s', utc_timestamp
+                 )
 print('Executing Azure Resource Query')
 
 # function to process Resource Query
@@ -46,3 +49,4 @@ def getresources( strQuery ):
     print(argResults)
 
 getresources("Resources | project id,tags,env='DEV' | limit 10")
+
